@@ -1,8 +1,8 @@
 # Functional Specification (FS)
 ## Projekt: Simulace bankovního systému
-**Verze:** 1.0  
+**Verze:** 1.1 
 **Autor:** — Zlámal Jakub  
-**Datum:** — 17.3.2026
+**Datum:** — 22.3.2026
 
 ---
 
@@ -67,7 +67,7 @@ Uživatel zadá přihlašovací údaje a systém ověří jejich platnost.
 
 ### Výstupy
 - úspěch → přihlášený uživatel + jeho role
-- neúspěch → chybová hláška, po 3 chybných pokusech se konzole zablokuje 
+- neúspěch → opakuje se do 3 chybných pokusů, potom se program ukončí 
 
 ### Logování
 - úspěšné i neúspěšné přihlášení s datumem
@@ -98,12 +98,11 @@ Administrátor vytvoří nový uživatelský účet a přiřadí mu jednu z dost
 - Heslo musí splňovat minimální požadavky (min. délka)
 - Role musí být jedna z povolených hodnot: *admin*, *bankéř*, *klient*
 - Systém ověří, zda uživatelské jméno již neexistuje
-- Adminovi se zobrazí rekapitulace údajů, kterou musí potvrdit nebo operaci stornovat
+- Adminovi se zobrazí rekapitulace údajů, které může změnit podle řádku nebo potvrdit
 
 ### Výstupy
 - Vytvoření nového uživatelského záznamu v DB
 - Hashované heslo uložené v DB
-- Přiřazení role novému uživateli
 - Výpis potvrzení o úspěšném vytvoření účtu
 
 ### Logování
@@ -112,7 +111,7 @@ Administrátor vytvoří nový uživatelský účet a přiřadí mu jednu z dost
 
 ## 3.2.2 Vytvoření finančního účtu
 
-### Název funkce : **CreateFinAccount**
+### Název funkce : **CreateAccount**
 
 ### Popis
 Bankéř vytvoří nový účet určitého typu podle výběru z menu aplikace.
@@ -120,20 +119,15 @@ Bankéř vytvoří nový účet určitého typu podle výběru z menu aplikace.
 ### Vstupy
 | Vlastnost | Typ Vstupu |
 | --------- | ---------- |
-| BÚ, SÚ, SSÚ, ÚÚ | výběr |
 | ID vlastníka | výběr |
-| počáteční zůstatek | string (volitelné) |
-
-### Validace
-- Výpis všech informací, bankéř potvrdí nebo změní konkrétní řádek a poté znovu potvrdí či kompletně stornuje operaci
-- Ověří zda zůstatek je reálné číslo nebo prázdný string
+| BÚ, SÚ, SSÚ, ÚÚ | výběr |
 
 ### Výstupy
 - Propojení uživatelova ID s jeho nově vytvořeným účtem v DB
-- Vypíše konečný stav zápisu do DB
+- Výpis potvrzení o úspěšném vytvoření bankovního účtu
 
 ### Logování
-- Vytvoření typu finančního účtu : datum, bankéř, uživatel, typ účtu, počáteční zůstatek
+- Vytvoření typu bankovního účtu : datum, bankéř, uživatel, typ účtu, počáteční zůstatek
 
 ---
 
@@ -149,11 +143,11 @@ Uživatel vloží příslušnou částku na účet.
 ### Vstupy
 | Vlastnost | Typ Vstupu |
 | --------- | ---------- |
-| Typ účtu | výběr |
+| Id účtu | výběr |
 | Částka | string |
 
 ### Validace
-- částka musí být číslo a být kladná
+- částka musí být být kladná
 
 ### Výstupy
 - konfirmace vložení na účet a výpis jeho nového zůstatku
@@ -173,18 +167,18 @@ Uživatel vybere peníze z účtu.
 ### Vstupy
 | Vlastnost | Typ Vstupu |
 | --------- | ---------- |
-| Typ účtu | výběr |
+| Id účtu | výběr |
 | Částka | string |
 
 ### Validace
-- Částka musí být validní číslo a být kladná
+- Částka musí být kladná
 - **BÚ:** zůstatek po výběru nesmí být záporný  
 - **SÚ:** výběr povolen pouze při kladném zůstatku  
 - **SSÚ:**  
   - výběr povolen pouze při kladném zůstatku  
   - částka ≤ limit jednorázového výběru  
   - součet výběrů za den ≤ denní limit
-- **ÚÚ:** - částka ≤ úvěrový rámec
+- **ÚÚ:** - částka po odečtení nesmí přesáhnout úvěrový rámec
 
 ### Výstupy
 - konfirmace výběru
@@ -200,21 +194,19 @@ Uživatel vybere peníze z účtu.
 ### Název funkce: **Transfer**
 
 ### Popis
-Přesun peněz mezi účty jednoho klienta (nebo libovolných účtů v případě bankéře).
+Přesun peněz mezi účty jednoho klienta.
 
 ### Vstupy
 | Vlastnost | Typ Vstupu |
 | --------- | ---------- |
 | uživatel | výběr | (bankéř)
 | zdrojový účet | výběr |
-| cílový uživatel | výběr | (bankéř)
 | cílový účet | výběr |
 | částka | string |
 
 ### Validace
-- Částka musí být validní čístlo a být kladná
-- klient může převádět pouze mezi vlastními účty
-- bankéř může převádět mezi libovolnými
+- Částka musí být kladná
+- Může se převádět pouze mezi účty konkrétního klienta
 - převod **není platba**
 - pravidla přesunu podle typu zdrojového účtu (viz Withdraw)
 
@@ -242,8 +234,7 @@ Klient může odesílat platby na cizí účty.
 | částka | string |
 
 ### Validace
-- Cílový účet musí být konvertován na dvě čísla rozdělená lomenem. Pokud lomeno chybí platba je v rámci téhle banky.
-- Částka musí být validní číslo a být kladná
+- Částka musí být kladná
 - platby lze odesílat pouze z:
   - **běžného účtu (BÚ)**
   - **úvěrového účtu (ÚÚ)**
@@ -294,7 +285,7 @@ Posun systémového času o X dní nebo měsíců.
 | počet dní nebo měsíců | string |
 
 ### Validace
-- musí být možné překonvertovat na číslo nebo datum
+- musí být validní datum nebo počet dní
 
 ### Chování
 - při přechodu na konec měsíce se spustí výpočet úroků
@@ -365,13 +356,78 @@ Zaznamenání operace do logovacího systému.
 - přihlášení
 - vytvoření účtu
 
-### Možnosti ukládání
-- soubor
+### Ukládání
 - databáze
 
 ---
 
-# 4. Omezení
+# 4. Databázové schéma (SQLite)
+
+Systém používá databázi **SQLite**.  
+Při inicializaci aplikace se vytvoří následující tabulky:
+
+- Users  
+- AccountTypes  
+- Accounts  
+- Logs  
+
+Níže je kompletní přehled všech tabulek včetně přesných datových typů.
+
+---
+
+## 4.1 Tabulka: Users
+
+| Sloupec   | Typ                         | Popis |
+|----------|------------------------------|-------|
+| Id       | INTEGER PRIMARY KEY AUTOINCREMENT | Unikátní ID uživatele |
+| Name     | TEXT NOT NULL               | Jméno |
+| Surname  | TEXT NOT NULL               | Příjmení |
+| Role     | TEXT NOT NULL               | Role (Admin / Banker / Client) |
+| Login    | TEXT NOT NULL UNIQUE        | Přihlašovací jméno |
+| Password | TEXT NOT NULL               | Hash hesla |
+
+---
+
+## 4.2 Tabulka: AccountTypes
+
+| Sloupec | Typ                         | Popis |
+|--------|------------------------------|--------|
+| Id     | INTEGER PRIMARY KEY AUTOINCREMENT | ID typu účtu |
+| Name   | TEXT NOT NULL UNIQUE         | Název typu účtu (Basic, Savings, StudentSavings, Credit) |
+
+---
+
+## 4.3 Tabulka: Accounts
+
+| Sloupec          | Typ                         | Popis |
+|------------------|------------------------------|-------|
+| Id               | INTEGER PRIMARY KEY AUTOINCREMENT | ID účtu |
+| AccountTypeId    | INTEGER                      | Typ účtu (FK → AccountTypes.Id) |
+| UserId           | INTEGER                      | Vlastník účtu (FK → Users.Id) |
+| Balance          | REAL NOT NULL DEFAULT 0      | Zůstatek |
+| CreatedAt        | TEXT NOT NULL DEFAULT (datetime('now')) | Datum vytvoření |
+| DailyLimit       | REAL                         | Denní limit (SSÚ) |
+| MaxPaymentLimit  | REAL                         | Limit jednorázového výběru (SSÚ) |
+| CreditLimit      | REAL                         | Úvěrový rámec (ÚÚ) |
+
+---
+
+## 4.4 Tabulka: Logs
+
+| Sloupec         | Typ                         | Popis |
+|-----------------|------------------------------|-------|
+| Id              | INTEGER PRIMARY KEY AUTOINCREMENT | ID logu |
+| Type            | TEXT NOT NULL               | Typ operace (deposit, withdraw, transfer, payment, interest, login…) |
+| Timestamp       | TEXT NOT NULL DEFAULT (datetime('now')) | Datum a čas |
+| InitiatorId     | INTEGER                     | Kdo akci provedl (FK → Users.Id) |
+| UserId          | INTEGER                     | Kterého uživatele se akce týká (FK → Users.Id) |
+| TargetAccountId | INTEGER                     | Dotčený účet (FK → Accounts.Id) |
+| Amount          | REAL                        | Částka |
+| Message         | TEXT                        | Volitelný popis |
+
+---
+
+# 5. Omezení
 - Všechny měsíce mají 30 dní
 - Úroky se připisují pouze na konci měsíce
 - Systém je konzolová aplikace
