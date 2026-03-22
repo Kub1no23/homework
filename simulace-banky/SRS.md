@@ -1,8 +1,8 @@
 # Software Requirements Specification (SRS)
 ## Projekt: Simulace bankovního systému
-**Verze:** 1.0  
+**Verze:** 1.1  
 **Autor:** — Zlámal Jakub  
-**Datum:** —  16.3.2026
+**Datum:** —  22.3.2026
 
 ---
 
@@ -50,7 +50,7 @@ Systém je samostatná aplikace s konzolovým rozhraním. Ukládá data do SQL d
 - Všechny měsíce mají pevně 30 dní.
 - Úroky se připisují pouze na konci měsíce.
 - Systém je konzolová aplikace.
-- Použitá databáze: SQL (SQLite/MSSQL/PostgreSQL)
+- Použitá databáze: SQL (SQLite)
 
 ---
 
@@ -150,8 +150,7 @@ Systém je samostatná aplikace s konzolovým rozhraním. Ukládá data do SQL d
 
 ### FR-16: Logování operací
 - Loguje se každá transakce, úrok, změna účtu, přihlášení.
-- Log může být uložen:
-  - do souboru,
+- Log bude uložen:
   - do databáze.
 
 ---
